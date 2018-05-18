@@ -1,0 +1,39 @@
+CC = mpicc 
+
+ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+SOURCES += $(ROOT_DIR)/rlxutils.c
+INCLUDES += $(ROOT_DIR)
+OBJECTS=$(SOURCES:.c=.o)
+
+UNAME_S := $(shell uname -s)
+
+# Linux specific stuff
+ifeq ($(UNAME_S),Linux)
+    CCFLAGS += -D LINUX
+    LDFLAGS += -lrt
+endif
+
+# MACOS specific stuff
+ifeq ($(UNAME_S),Darwin)
+    CCFLAGS += -D OSX
+endif
+
+all: info $(TARGET)
+
+info:
+	@echo "--------------------------------------"
+	@echo "- bulding $(TARGET)"
+	@echo "--------------------------------------"
+
+$(TARGET): $(OBJECTS) 
+	$(CC) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+
+.c.o:
+	@echo "INCLUDES $(INCLUDES)"
+	@echo "SOURCES $(SOURCES)"
+	@echo "ROOT DIR $(ROOT_DIR)"
+	$(CC) -c $(CCFLAGS) -I$(INCLUDES) $< -o $@
+
+clean:
+	rm -rf *o $(TARGET) $(ROOT_DIR)/*.o
